@@ -4,12 +4,30 @@
 
 	<select id="serVletTest" resultType="EgovMap">
 		<![CDATA[
-			SELECT 
-				FILENAME, FILEREALNAME
-			FROM
-				UPLOAD
-			WHERE
-				1=1
+			SELECT FILENAME, FILEREALNAME
+			FROM UPLOAD
+			WHERE 1=1
 		]]>
+	</select>
+
+	<select id="sidonm" resultType="Map">
+		SELECT sd_nm, sd_cd, 
+		ST_AsText(ST_Transform(ST_Centroid(geom), 4326)) AS geom 
+		FROM tl_sd;
+	</select>
+
+	<select id="sggnm" resultType="Map" parameterType="String">
+      SELECT REPLACE(sgg_nm, CONCAT(sd_nm, ' '), '') AS sgg_nm, sgg_cd, 
+      			ST_AsText(ST_Transform(ST_Centroid(geom), 4326)) AS geom
+      FROM tl_sgg WHERE sgg_nm LIKE CONCAT(#{sido}, '%') 
+	</select>
+
+
+	<select id="bjdnm" resultType="Map" parameterType="String">
+		SELECT DISTINCT b.bjd_nm, b.bjd_cd, 
+				ST_AsText(ST_Transform(ST_Centroid(b.geom), 4326)) AS geom 
+		FROM tl_bjd b
+		JOIN tl_sgg c ON b.sgg_cd = c.sgg_cd
+		WHERE c.sgg_cd = #{sgg};
 	</select>
 </mapper>
