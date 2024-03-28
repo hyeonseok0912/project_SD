@@ -30,4 +30,15 @@
 		JOIN tl_sgg c ON b.sgg_cd = c.sgg_cd
 		WHERE c.sgg_cd = #{sgg};
 	</select>
+	
+	<insert id="fileUp" parameterType="list">
+        <foreach collection="list" item="item" index="index" separator=";">
+        INSERT INTO hyeon (sd_nm, bjd_cd, usage)  
+        VALUES (#{item.sd_nm}, #{item.bjd_cd}, #{item.usage})
+      	</foreach>
+   </insert>
+   
+   <delete id="clearData">
+   		DELETE FROM hyeon;
+   </delete>
 </mapper>

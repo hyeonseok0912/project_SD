@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import egovframework.rte.psl.dataaccess.util.EgovMap;
 import servlet.service.ServletService;
-import servlet.vo.ServletVO;
 
 @Service("ServletService")
 public class ServletImpl extends EgovAbstractServiceImpl implements ServletService{
@@ -37,5 +36,15 @@ public class ServletImpl extends EgovAbstractServiceImpl implements ServletServi
 	@Override
 	public List<Map<String, Object>> bjdlist(String sgg) {
 		return dao.bjdlist(sgg);
+	}
+
+	@Override
+	public void uploadFile(List<Map<String, Object>> list) {
+		dao.uploadFile(list);
+	}
+
+	@Override
+	public void clearDatabase() {
+		dao.clearDatabase();
 	}
 }
