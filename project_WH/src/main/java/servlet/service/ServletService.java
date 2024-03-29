@@ -12,7 +12,7 @@ public interface ServletService {
 
 	List<Map<String, Object>> bjdlist(String sgg);
 
-	void uploadFile(List<Map<String, Object>> list);
+	int uploadFile(List<Map<String, Object>> list);
 
 	void clearDatabase();
 

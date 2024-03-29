@@ -15,6 +15,7 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <!-- 제이쿼리 -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <script type="text/javascript">
         var sdLayer;
@@ -23,7 +24,6 @@
 
         $(document).ready(function() {
 
-            /////////////////////////////////// 파일 업로드 start
             $("#fileBtn").on("click", function() {
                 let fileName = $('#file').val();
                 if(fileName == ""){
@@ -85,7 +85,6 @@
                     alert("확장자가 안 맞으면 멈추기");
                 }
             });
-            /////////////////////////////////// 파일 업로드 end
 
             $('#sidoSelect').change(function() {
                 var sidoSelectedValue = $(this).val().split(',')[0];
@@ -346,110 +345,147 @@
                 });
         });
     </script>
-    <style type="text/css">
-        .toolBar {
-            height: 900px;
-            width: 15%;
-            float: left;
+<title>탄소배출량 표기 시스템</title>
+<style type="text/css">
+/* 전체 스타일 */
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* 커스텀 헤더 스타일 */
+.custom-header {
+    background-color: aqua;
+    color: black;
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    padding: 20px;
+}
+
+/* 커스텀 메인 스타일 */
+.custom-main {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px;
+}
+
+/* 맵 스타일 */
+#map {
+    width: 100%;
+    height: 600px;
+}
+
+/* 푸터 스타일 */
+.footer {
+    height: 50px;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    line-height: 50px;
+}
+
+/* 그리드 컬럼 및 메뉴, 셀렉트바 스타일 */
+.col-3, .col-9, .upMenu {
+    border: 2px solid gray;
+}
+.col-3, .col-9 {
+    padding: 0 !important;
+}
+
+/* 탄소공간지도 시스템 스타일 */
+.TS {
+    border-right: 2px solid gray;
+    height: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid gray;
+    background-color: aqua;
+}
+
+/* 메뉴 스타일 */
+.menu {
+    width: 120px;
+    height: 560px;
+    border-right: 2px solid gray;
+}
+.fileUpload {
+            display: none; /* 초기에는 숨김 */
         }
-        .address {
-            height: 50px;
-        }
-        .map {
-            height: 850px;
-            width: 85%;
-            float: right;
-        }
-        .footer {
-            height: 5%;
-            width: 100%;
-            clear: both; /* 부모 요소 아래로 내려가도록 함 */
-            color: white;
-            position: fiexd;
-            bottom: 0;
-            text-align: center;
-        }
-        .selectBar {
-            padding: 5px 20px;
-        }
-        #sidoSelect {
-            width: 90%;
-        }
-        #sggSelect {
-            width: 90%;
-        }
-        #bjdSelect {
-            width: 90%;
-        }
-    </style>
+    /* 셀렉트바 스타일 */
+    .selectBar select {
+        width: 100px; /* 너비 설정 */
+    }
+</style>
 </head>
 <body>
-<div>
-    <div class="toolBar">
-
-        <h1>메뉴</h1>
-
-        <div class="selectBar">
-            <select id="sidoSelect">
-                <option>--시/도를 선택하세요--</option>
-                <c:forEach items="${sdlist }" var="sido">
-                    <option value="${sido.sd_cd },${sido.geom}">${sido.sd_nm }</option>
-                </c:forEach>
-            </select>
+    <div class="custom-header">Header</div>
+    <div class="custom-main">메인 화면</div>
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <div class="toolBar">
+                    <div class="TS">탄소공간지도 시스템</div>
+                    <div class="upMenu" style="display: flex; justify-content: space-between;">
+                        <div class="menu">
+                            <button id="carbonMapBtn">탄소지도</button>
+                            <button id="dataInsertBtn">데이터 삽입</button>
+                            <button id="statisticsBtn">통계</button>
+                        </div>
+                        <div>
+                            <div class="selectBar">
+                                <select id="sidoSelect">
+                                    <option>시/도</option>
+                                    <c:forEach items="${sdlist }" var="sido">
+                                        <option value="${sido.sd_cd },${sido.geom}">${sido.sd_nm }</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                            <div class="selectBar">
+                                <select id="sggSelect">
+                                    <option>시/군/구</option>
+                                </select>
+                            </div>
+                            <div class="selectBar">
+                                <select id="bjdSelect">
+                                    <option>동/읍/면</option>
+                                </select>
+                            </div>
+                            <div class="fileUpload">
+                    <form id="form" enctype="multipart/form-data">
+                        <input type="file" id="file" name="file" accept="txt">
+                    </form>
+                    <button type="button" id="fileBtn">파일 전송</button>
+                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-9">
+                <div id="map" class="map"></div>
+            </div>
         </div>
-
-        <div class="selectBar">
-            <select id="sggSelect">
-                <option>--시/군/구를 선택하세요--</option>
-            </select>
-        </div>
-
-        <div class="selectBar">
-            <select id="bjdSelect">
-                <option>--동/읍/면을 선택하세요--</option>
-            </select>
-        </div>
-        
-        <button id="carbonMapBtn">탄소지도</button>
-        <button id="dataInsertBtn">데이터 삽입</button>
-        <button id="statisticsBtn">통계</button>
-        
     </div>
-    <div>
-        <div id="address" class="address">
-            <h1>주소창</h1>
-        </div>
-        <div id="map" class="map">
-        </div>
+
+    <div class="footer">
+        <h3>탄소배출량 표기 시스템</h3>
     </div>
 
-</div>
-<div>
-    <form id="form" enctype="multipart/form-data" style="display: none;"> <!-- 초기에는 숨김 -->
-        <input type="file" id="file" name="file" accept="txt">
-    </form>
-    <button type="button" id="fileBtn" style="display: none;">파일 전송</button><hr> <!-- 초기에는 숨김 -->
-</div>
-<div class="footer">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 탄소지도 버튼 클릭 시 셀렉트바 보이기
+            $('#carbonMapBtn').click(function() {
+                $('.fileUpload').hide(); // 파일 업로드 숨기기
+                $('.selectBar').toggle(); // 셀렉트바 보이기/숨기기
+            });
 
-    <h3>탄소배출량 표기 시스템</h3>
-
-</div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-    // 탄소지도 버튼 클릭 시 맵 보이기/숨기기
-    $('#carbonMapBtn').click(function() {
-        $('#map').toggle();
-        $('.selectBar').toggle(); // 메뉴 select 바 보이기/숨기기
-    });
-
-    // 데이터 삽입 버튼 클릭 시 파일 업로드 영역 보이기/숨기기
-    $('#dataInsertBtn').click(function() {
-        $('#form').toggle();
-        $('#fileBtn').toggle();
-    });
-});
-</script>
+            // 데이터 삽입 버튼 클릭 시 파일 업로드 영역 보이기
+            $('#dataInsertBtn').click(function() {
+                $('.selectBar').hide(); // 셀렉트바 숨기기
+                $('.fileUpload').toggle(); // 파일 업로드 보이기/숨기기
+            });
+        });
+    </script>
 </body>
 </html>

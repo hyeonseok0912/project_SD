@@ -32,8 +32,8 @@ public class ServletDAO extends EgovComAbstractDAO {
 		return selectList("servlet.bjdnm", sgg);
 	}
 
-	public Object uploadFile(List<Map<String, Object>> list) {
-		return insert("servlet.fileUp", list);
+	public int uploadFile(List<Map<String, Object>> list) {
+		return session.insert("servlet.fileUp", list);
 	}
 
 	public void clearDatabase() {

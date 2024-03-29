@@ -24,12 +24,12 @@ import servlet.service.ServletService;
 public class FileUpController {
 	@Resource(name = "ServletService")
 	private ServletService servletService;
-	
+
 	@ResponseBody
 	@RequestMapping(value = "/fileUp.do", method = RequestMethod.POST)
 	public void fileUpload(@RequestParam("file") MultipartFile multi) throws IOException {
 		servletService.clearDatabase();
-		
+
 		System.out.println(multi.getOriginalFilename());
 		System.out.println(multi.getName());
 		System.out.println(multi.getContentType());
@@ -41,19 +41,23 @@ public class FileUpController {
 		BufferedReader br = new BufferedReader(isr);
 
 		String line = null;
+		int pageSize = 10000;
+		int count = 1;
 		while ((line = br.readLine()) != null) {
-			Map<String, Object> m = new HashMap<String, Object>();
-			String[] lineArr = line.split("\\|");
-
-			System.out.println(Arrays.toString(lineArr));
-			m.put("sd_nm", lineArr[3]); // 시군구코드
-			m.put("bjd_cd", lineArr[4]); // 법정동코드
-			m.put("usage", lineArr[13] == "" ? 0 : Integer.parseInt(lineArr[13])); // 사용량
-
-			list.add(m);
+			Map<String, Object> map = new HashMap<String, Object>();
+			String[] arr = line.split("\\|");
+			map.put("sd_nm", arr[3]);
+			map.put("bjd_cd", arr[4]);
+			map.put("usage", Integer.parseInt(arr[13]));
+			list.add(map);
+			if (--pageSize <= 0) {
+				servletService.uploadFile(list);
+				list.clear();
+				System.out.println("클리어" + count++);
+				pageSize = 10000;
+			}
+			
 		}
-		servletService.uploadFile(list);
-		System.out.println(list);
 
 		br.close();
 		isr.close();
