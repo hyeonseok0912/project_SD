@@ -21,9 +21,270 @@
         var sdLayer;
         var sggLayer;
         var bjdLayer;
-
+        var sggSelect;
+        var bjdSelect;
+        let sidocd;
+        let sggcd;
+        let bjdcd;
+        let cqlFilterSD;
+        let cqlFilterSGG;
+        let cqlFilterBJD;
+        
         $(document).ready(function() {
+			
+            $('#sidoSelect').change(function() {
+                var sidoSelectedValue = $(this).val().split(',')[0];
+                var sidoSelectedText = $(this).find('option:selected').text();
+                //alert(sidoSelectedText);
+                updateAddress(sidoSelectedText, null, null); // 상단 시/도 노출
 
+                cqlFilterSD = "sd_cd='" + sidoSelectedValue + "'";
+
+                if(sdLayer || sggLayer || bjdLayer) {
+                    map.removeLayer(sdLayer);
+                    map.removeLayer(sggLayer);
+                    map.removeLayer(bjdLayer);
+                }
+
+                // 선택된 시/도의 geom 값을 가져와서 지도에 표시
+                var datas = $(this).val(); // value 값 가져오기
+                var values = datas.split(",");
+                sidocd = values[0]; // sido 코드
+
+                var geom = values[1]; // x 좌표
+                //alert("sido 좌표값" + sido); 얜 가져옴
+                var regex = /POINT\(([-+]?\d+\.\d+) ([-+]?\d+\.\d+)\)/;
+                var matches = regex.exec(geom);
+                var xCoordinate, yCoordinate;
+
+                if (matches) {
+                    xCoordinate = parseFloat(matches[1]); // x 좌표
+                    yCoordinate = parseFloat(matches[2]); // y 좌표
+                } else {
+                    alert("GEOM값 가져오기 실패!");
+                }
+
+                var sidoCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
+                map.getView().setCenter(sidoCenter); // 중심좌표 기준으로 보기
+                map.getView().setZoom(8); // 중심좌표 기준으로 줌 설정
+
+                $.ajax({
+                    type : "POST", // 또는 "GET", 요청 방식 선택
+                    url : "/sgg.do", // 컨트롤러의 URL 입력
+                    data : {
+                        "sido" : sidoSelectedText
+                    }, // 선택된 값 전송
+                    dataType : 'text',
+                    success : function(response) {
+                        alert('sidoSelect AJAX 요청 성공!');
+
+                        var sgg = JSON.parse(response);
+
+                        sggSelect = $("#sggSelect");
+                        sggSelect.html("<option>--시/군/구를 선택하세요--</option>");
+                        bjdSelect = $("#bjdSelect");
+                        bjdSelect.html("<option>--동/읍/면을 선택하세요--</option>");
+                        for (var i = 0; i < sgg.length; i++) {
+                            var item = sgg[i];
+                            sggSelect.append("<option value='" + item.sgg_cd + "," + item.geom + "'>"+ item.sgg_nm + "</option>");
+                        }
+                    },
+                    error : function(xhr, status, error) {
+                        // 에러 발생 시 수행할 작업
+                        alert('ajax 실패 sido');
+                        // console.error("AJAX 요청 실패:", error);
+                    }
+                });
+            });
+
+            $('#sggSelect').change(function() {
+                var sggSelectedValue = $(this).val().split(',')[0];
+
+                if(sggSelectedValue) {
+                    var sggSelectedText = $(this).find('option:selected').text();
+                    updateAddress(null, sggSelectedText, null); //상단 시/군/구 노출
+                }
+
+                //여기 좌표코드 설정
+                var datas = $(this).val(); // value 값 가져오기
+                var values = datas.split(",");
+                sggcd = values[0]; // sido 코드
+
+                var geom = values[1]; // x 좌표
+                //alert("sido 좌표값" + sido); 얜 가져옴
+                var regex = /POINT\(([-+]?\d+\.\d+) ([-+]?\d+\.\d+)\)/;
+                var matches = regex.exec(geom);
+                var xCoordinate, yCoordinate;
+
+                if (matches) {
+                    xCoordinate = parseFloat(matches[1]); // x 좌표
+                    yCoordinate = parseFloat(matches[2]); // y 좌표
+                } else {
+                    alert("GEOM값 가져오기 실패!");
+                }
+
+                var sggCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
+                map.getView().setCenter(sggCenter); // 중심좌표 기준으로 보기
+                map.getView().setZoom(10); // 중심좌표 기준으로 줌 설정
+
+                cqlFilterSGG = "sgg_cd='" + sggSelectedValue + "'";
+
+                if(sggLayer || bjdLayer) {
+                    map.removeLayer(sggLayer);
+                    map.removeLayer(bjdLayer);
+                }
+
+                $.ajax({
+                    type : "POST", // 또는 "GET", 요청 방식 선택
+                    url : "/bjd.do", // 컨트롤러의 URL 입력
+                    data : {
+                        "sgg" : sggSelectedValue
+                    }, // 선택된 값 전송
+                    dataType : 'text',
+                    success : function(response) {
+                        alert('sggSelect AJAX 요청 성공!');
+
+                        var bjd = JSON.parse(response);
+
+                        bjdSelect = $("#bjdSelect");
+                        bjdSelect.html("<option>--동/읍/면을 선택하세요--</option>");
+                        for (var i = 0; i < bjd.length; i++) {
+                            var item = bjd[i];
+                            bjdSelect.append("<option value='" + item.bjd_cd + "," + item.geom + "'>"+ item.bjd_nm + "</option>");
+                        }
+                    },
+                    error : function(xhr,status, error) {
+                        // 에러 발생 시 수행할 작업
+                        alert('ajax 실패 sgg');
+                        // console.error("AJAX 요청 실패:", error);
+                    }
+                });
+                alert("시군구쪽 ajax문 끝");
+            });
+
+            $('#bjdSelect').change(function() {
+                var bjdSelectedValue = $(this).val().split(',')[0];
+                var bjdSelectedText = $(this).find('option:selected').text();
+                updateAddress(null, null, bjdSelectedText); //상단 법정동 노출
+
+                //여기 좌표코드 설정
+                var datas = $(this).val(); // value 값 가져오기
+                var values = datas.split(",");
+                bjdcd = values[0]; // sido 코드
+
+                var geom = values[1]; // x 좌표
+                //alert("sido 좌표값" + sido); 얜 가져옴
+                var regex = /POINT\(([-+]?\d+\.\d+) ([-+]?\d+\.\d+)\)/;
+                var matches = regex.exec(geom);
+                var xCoordinate, yCoordinate;
+
+                if (matches) {
+                    xCoordinate = parseFloat(matches[1]); // x 좌표
+                    yCoordinate = parseFloat(matches[2]); // y 좌표
+                } else {
+                    alert("GEOM값 가져오기 실패!");
+                }
+
+                var bjdCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
+                map.getView().setCenter(bjdCenter); // 중심좌표 기준으로 보기
+                map.getView().setZoom(13); // 중심좌표 기준으로 줌 설정
+
+                cqlFilterBJD = "bjd_cd='" + bjdSelectedValue + "'";
+
+                if(bjdLayer) {
+                    map.removeLayer(bjdLayer);
+                }
+
+            });
+        	
+        	$("#searchBtn").click(function() {
+        		
+                if (sidocd) {
+        	        map.removeLayer(sdLayer);
+        	        map.removeLayer(sggLayer);
+        	        
+/*                     // 기존에 추가된 시군구 레이어가 있다면 삭제
+                    var sggLayerToRemove = map.getLayers().getArray().find(function(layer) {
+                        return layer.get('name') === 'sggLayer';
+                    });
+                    if (sggLayerToRemove) {
+                        map.removeLayer(sggLayerToRemove);
+                    } */
+        	        
+                    map.removeLayer(bjdLayer);
+                    
+                    //시도 레이어 추가
+                    addSidoLayer();
+
+                    if (sggcd) {
+                        // 시군구 레이어 추가
+                        addSggLayer();
+                        
+                        if (bjdcd) {
+                            // 법정동 레이어 추가
+                            addBjdLayer();
+                        }
+                    }
+                }
+        	});
+
+        	function addSidoLayer() {
+        		//alert("addSidoLayer 함수 호출됨!");
+        	    sdLayer = new ol.layer.Tile({
+        	        source: new ol.source.TileWMS({
+        	            url: 'http://localhost:8080/geoserver/cite/wms?service=WMS',
+        	            params: {
+        	                'VERSION': '1.1.0',
+        	                'LAYERS': 'cite:tl_sd',
+        	                'CQL_FILTER': cqlFilterSD,
+        	                'BBOX': [1.3871489341071218E7, 3910407.083927817, 1.4680011171788167E7, 4666488.829376997],
+        	                'SRS': 'EPSG:3857',
+        	                'FORMAT': 'image/png'
+        	            },
+        	            serverType: 'geoserver',
+        	        })
+        	    });
+        	    map.addLayer(sdLayer);
+        	}
+
+        	function addSggLayer() {
+        		//alert("addSggLayer 함수 호출됨!");
+        	    sggLayer = new ol.layer.Tile({
+        	        source: new ol.source.TileWMS({
+        	            url: 'http://localhost:8080/geoserver/cite/wms?service=WMS',
+        	            params: {
+        	                'VERSION': '1.1.0',
+        	                'LAYERS': 'cite:tl_sgg',
+        	                'CQL_FILTER': cqlFilterSGG,
+        	                'BBOX': [1.386872E7, 3906626.5, 1.4428071E7, 4670269.5],
+        	                'SRS': 'EPSG:3857',
+        	                'FORMAT': 'image/png'
+        	            },
+        	            serverType: 'geoserver',
+        	        })
+        	    });
+        	    map.addLayer(sggLayer);
+        	}
+
+        	function addBjdLayer() {
+        		//alert("addBjdLayer 함수 호출됨!");
+        	    bjdLayer = new ol.layer.Tile({
+        	        source: new ol.source.TileWMS({
+        	            url: 'http://localhost:8080/geoserver/cite/wms?service=WMS',
+        	            params: {
+        	                'VERSION': '1.1.0',
+        	                'LAYERS': 'cite:tl_bjd',
+        	                'CQL_FILTER': cqlFilterBJD,
+        	                'BBOX': [1.3873946E7, 3906626.5, 1.4428045E7, 4670269.5],
+        	                'SRS': 'EPSG:3857',
+        	                'FORMAT': 'image/png'
+        	            },
+        	            serverType: 'geoserver',
+        	        })
+        	    });
+        	    map.addLayer(bjdLayer);
+        	}
+        	
             $("#fileBtn").on("click", function() {
                 let fileName = $('#file').val();
                 if(fileName == ""){
@@ -84,237 +345,6 @@
                 }else{
                     alert("확장자가 안 맞으면 멈추기");
                 }
-            });
-
-            $('#sidoSelect').change(function() {
-                var sidoSelectedValue = $(this).val().split(',')[0];
-                var sidoSelectedText = $(this).find('option:selected').text();
-                //alert(sidoSelectedText);
-                updateAddress(sidoSelectedText, null, null); // 상단 시/도 노출
-
-                var cqlFilterSD = "sd_cd='" + sidoSelectedValue + "'";
-
-                if(sdLayer || sggLayer || bjdLayer) {
-                    map.removeLayer(sdLayer);
-                    map.removeLayer(sggLayer);
-                    map.removeLayer(bjdLayer);
-                }
-
-                // 선택된 시/도의 geom 값을 가져와서 지도에 표시
-                var datas = $(this).val(); // value 값 가져오기
-                var values = datas.split(",");
-                var sidocd = values[0]; // sido 코드
-
-                var geom = values[1]; // x 좌표
-                //alert("sido 좌표값" + sido); 얜 가져옴
-                var regex = /POINT\(([-+]?\d+\.\d+) ([-+]?\d+\.\d+)\)/;
-                var matches = regex.exec(geom);
-                var xCoordinate, yCoordinate;
-
-                if (matches) {
-                    xCoordinate = parseFloat(matches[1]); // x 좌표
-                    yCoordinate = parseFloat(matches[2]); // y 좌표
-                } else {
-                    alert("GEOM값 가져오기 실패!");
-                }
-
-                var sidoCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
-                map.getView().setCenter(sidoCenter); // 중심좌표 기준으로 보기
-                map.getView().setZoom(8); // 중심좌표 기준으로 줌 설정
-
-                sdLayer = new ol.layer.Tile({ // sd 시도
-                    source : new ol.source.TileWMS({
-                        url : 'http://localhost:8080/geoserver/cite/wms?service=WMS', // 1. 레이어 URL
-                        params : {
-                            'VERSION' : '1.1.0', // 2. 버전
-                            'LAYERS' : 'cite:tl_sd', // 3. 작업공간:레이어 명
-                            'CQL_FILTER': cqlFilterSD,
-                            'BBOX' : [
-                                1.3871489341071218E7,
-                                3910407.083927817,
-                                1.4680011171788167E7,
-                                4666488.829376997 ],
-                            'SRS' : 'EPSG:3857', // SRID
-                            'FORMAT' : 'image/png' // 포맷
-                        },
-                        serverType : 'geoserver',
-                    })
-                });
-                map.addLayer(sdLayer); // 맵 객체에 레이어를 추가
-
-                //$('#sggSelect, #bjdSelect').empty().val(null).trigger('change');
-
-                $.ajax({
-                    type : "POST", // 또는 "GET", 요청 방식 선택
-                    url : "/sgg.do", // 컨트롤러의 URL 입력
-                    data : {
-                        "sido" : sidoSelectedText
-                    }, // 선택된 값 전송
-                    dataType : 'text',
-                    success : function(response) {
-                        alert('sidoSelect AJAX 요청 성공!');
-
-                        var sgg = JSON.parse(response);
-
-                        var sggSelect = $("#sggSelect");
-                        sggSelect.html("<option>--시/군/구를 선택하세요--</option>");
-                        for (var i = 0; i < sgg.length; i++) {
-                            var item = sgg[i];
-                            sggSelect.append("<option value='" + item.sgg_cd + "," + item.geom + "'>"+ item.sgg_nm + "</option>");
-                        }
-                    },
-                    error : function(xhr, status, error) {
-                        // 에러 발생 시 수행할 작업
-                        alert('ajax 실패 sido');
-                        // console.error("AJAX 요청 실패:", error);
-                    }
-                });
-            });
-
-            $('#sggSelect').change(function() {
-                var sggSelectedValue = $(this).val().split(',')[0];
-
-                if(sggSelectedValue) {
-                    var sggSelectedText = $(this).find('option:selected').text();
-                    updateAddress(null, sggSelectedText, null); //상단 시/군/구 노출
-                }
-
-                //여기 좌표코드 설정
-                var datas = $(this).val(); // value 값 가져오기
-                var values = datas.split(",");
-                var sggcd = values[0]; // sido 코드
-
-                var geom = values[1]; // x 좌표
-                //alert("sido 좌표값" + sido); 얜 가져옴
-                var regex = /POINT\(([-+]?\d+\.\d+) ([-+]?\d+\.\d+)\)/;
-                var matches = regex.exec(geom);
-                var xCoordinate, yCoordinate;
-
-                if (matches) {
-                    xCoordinate = parseFloat(matches[1]); // x 좌표
-                    yCoordinate = parseFloat(matches[2]); // y 좌표
-                } else {
-                    alert("GEOM값 가져오기 실패!");
-                }
-
-                var sggCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
-                map.getView().setCenter(sggCenter); // 중심좌표 기준으로 보기
-                map.getView().setZoom(10); // 중심좌표 기준으로 줌 설정
-
-                var cqlFilterSGG = "sgg_cd='" + sggSelectedValue + "'";
-
-                if(sggLayer || bjdLayer) {
-                    map.removeLayer(sggLayer);
-                    map.removeLayer(bjdLayer);
-                }
-
-                sggLayer = new ol.layer.Tile(
-                    { // sgg 시군구
-                        source : new ol.source.TileWMS(
-                            {
-                                url : 'http://localhost:8080/geoserver/cite/wms?service=WMS', // 1. 레이어 URL
-                                params : {
-                                    'VERSION' : '1.1.0', // 2. 버전
-                                    'LAYERS' : 'cite:tl_sgg', // 3. 작업공간:레이어 명
-                                    'CQL_FILTER': cqlFilterSGG,
-                                    'BBOX' : [ 1.386872E7,
-                                        3906626.5,
-                                        1.4428071E7,
-                                        4670269.5 ],
-                                    'SRS' : 'EPSG:3857', // SRID
-                                    'FORMAT' : 'image/png' // 포맷
-                                },
-                                serverType : 'geoserver',
-                            })
-                    });
-
-                map.addLayer(sggLayer); // 맵 객체에 레이어를 추가함
-
-                //$('#bjdSelect').empty().val(null).trigger('change');
-
-                $.ajax({
-                    type : "POST", // 또는 "GET", 요청 방식 선택
-                    url : "/bjd.do", // 컨트롤러의 URL 입력
-                    data : {
-                        "sgg" : sggSelectedValue
-                    }, // 선택된 값 전송
-                    dataType : 'text',
-                    success : function(response) {
-                        alert('sggSelect AJAX 요청 성공!');
-
-                        var bjd = JSON.parse(response);
-
-                        var bjdSelect = $("#bjdSelect");
-                        bjdSelect.html("<option>--동/읍/면를 선택하세요--</option>");
-                        for (var i = 0; i < bjd.length; i++) {
-                            var item = bjd[i];
-                            bjdSelect.append("<option value='" + item.bjd_cd + "," + item.geom + "'>"+ item.bjd_nm + "</option>");
-                        }
-                    },
-                    error : function(xhr,status, error) {
-                        // 에러 발생 시 수행할 작업
-                        alert('ajax 실패 sgg');
-                        // console.error("AJAX 요청 실패:", error);
-                    }
-                });
-                alert("시군구쪽 ajax문 끝");
-            });
-
-            $('#bjdSelect').change(function() {
-                var bjdSelectedValue = $(this).val().split(',')[0];
-                var bjdSelectedText = $(this).find('option:selected').text();
-                updateAddress(null, null, bjdSelectedText); //상단 법정동 노출
-
-                //여기 좌표코드 설정
-                var datas = $(this).val(); // value 값 가져오기
-                var values = datas.split(",");
-                var bjdcd = values[0]; // sido 코드
-
-                var geom = values[1]; // x 좌표
-                //alert("sido 좌표값" + sido); 얜 가져옴
-                var regex = /POINT\(([-+]?\d+\.\d+) ([-+]?\d+\.\d+)\)/;
-                var matches = regex.exec(geom);
-                var xCoordinate, yCoordinate;
-
-                if (matches) {
-                    xCoordinate = parseFloat(matches[1]); // x 좌표
-                    yCoordinate = parseFloat(matches[2]); // y 좌표
-                } else {
-                    alert("GEOM값 가져오기 실패!");
-                }
-
-                var bjdCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
-                map.getView().setCenter(bjdCenter); // 중심좌표 기준으로 보기
-                map.getView().setZoom(13); // 중심좌표 기준으로 줌 설정
-
-                var cqlFilterBJD = "bjd_cd='" + bjdSelectedValue + "'";
-
-                if(bjdLayer) {
-                    map.removeLayer(bjdLayer);
-                }
-
-                bjdLayer = new ol.layer.Tile(
-                    { // bjd 법정동
-                        source : new ol.source.TileWMS(
-                            {
-                                url : 'http://localhost:8080/geoserver/cite/wms?service=WMS', // 1. 레이어 URL
-                                params : {
-                                    'VERSION' : '1.1.0', // 2. 버전
-                                    'LAYERS' : 'cite:tl_bjd', // 3. 작업공간:레이어 명
-                                    'CQL_FILTER' : cqlFilterBJD,
-                                    'BBOX' : [ 1.3873946E7,
-                                        3906626.5,
-                                        1.4428045E7,
-                                        4670269.5 ],
-                                    'SRS' : 'EPSG:3857', // SRID
-                                    'FORMAT' : 'image/png' // 포맷
-                                },
-                                serverType : 'geoserver',
-                            })
-                    });
-
-                map.addLayer(bjdLayer); // 맵 객체에 레이어를 추가함
-
             });
 
             function updateAddress(sido, sgg, bjd) {
@@ -378,8 +408,8 @@ body {
 /* 푸터 스타일 */
 .footer {
     height: 50px;
-    background-color: #333;
-    color: white;
+    background-color: aqua;
+    color: black;
     text-align: center;
     line-height: 50px;
 }
@@ -451,12 +481,15 @@ body {
                                     <option>동/읍/면</option>
                                 </select>
                             </div>
-                            <div class="fileUpload">
-                    <form id="form" enctype="multipart/form-data">
-                        <input type="file" id="file" name="file" accept="txt">
-                    </form>
-                    <button type="button" id="fileBtn">파일 전송</button>
-                </div>
+                            <div>
+                            	<button type="button" id="searchBtn">검색</button>
+                            </div>
+		                    <div class="fileUpload">
+			                    <form id="form" enctype="multipart/form-data">
+			                        <input type="file" id="file" name="file" accept="txt">
+			                    </form>
+			                    <button type="button" id="fileBtn">파일 전송</button>
+		                	</div>
                         </div>
                     </div>
                 </div>
