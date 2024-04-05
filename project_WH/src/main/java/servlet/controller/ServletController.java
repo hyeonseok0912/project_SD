@@ -28,11 +28,12 @@ public class ServletController {
 		model.addAttribute("resultStr", str);
 
 		List<Map<String, Object>> sdlist = servletService.list();
-		System.out.println(sdlist);
 		model.addAttribute("sdlist", sdlist);
 		model.addAttribute("sido", sido);
-		System.out.println(sido);
-		System.out.println("sido 통과");
+		
+		List<Map<String, Object>> usagelist = servletService.usagelist();
+		model.addAttribute("usagelist", usagelist);
+		
 		return "main/main";
 	}
 
@@ -55,5 +56,24 @@ public class ServletController {
 		System.out.println("bjd 통과");
 		System.out.println(bjdlist);
 		return bjdlist;
+	}
+	
+	@RequestMapping(value = "/sd.do", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, Object>> staticTest(){
+
+		List<Map<String, Object>> usagelist = servletService.usagelist();
+		System.out.println(usagelist);
+		
+		return usagelist;
+	}
+	
+	@RequestMapping(value = "/static.do", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, Object>> staticTest(@RequestParam(name = "sdcd", required = false, defaultValue = "") String sdcd) throws Exception {
+	    
+	    System.out.println("sdcd 값은?" + sdcd);
+	    List<Map<String, Object>> usagelistsgg = servletService.usagelistsgg(sdcd);
+	    System.out.println(usagelistsgg);
+	    
+	    return usagelistsgg;
 	}
 }

@@ -39,4 +39,13 @@ public class ServletDAO extends EgovComAbstractDAO {
 	public void clearDatabase() {
 		session.delete("servlet.clearData");
 	}
+
+	public List<Map<String, Object>> usagelist() {
+		return selectList("servlet.usagelist");
+	}
+
+	public List<Map<String, Object>> usagelistsgg(String sdcd) {
+		// TODO Auto-generated method stub
+		return selectList("servlet.usagelistsgg", sdcd);
+	}
 }

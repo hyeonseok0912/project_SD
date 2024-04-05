@@ -47,4 +47,15 @@ public class ServletImpl extends EgovAbstractServiceImpl implements ServletServi
 	public void clearDatabase() {
 		dao.clearDatabase();
 	}
+
+	@Override
+	public List<Map<String, Object>> usagelist() {
+		return dao.usagelist();
+	}
+
+	@Override
+	public List<Map<String, Object>> usagelistsgg(String sdcd) {
+		return dao.usagelistsgg(sdcd);
+	}
+
 }

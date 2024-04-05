@@ -16,5 +16,9 @@ public interface ServletService {
 
 	void clearDatabase();
 
+	List<Map<String, Object>> usagelist();
+
+	List<Map<String, Object>> usagelistsgg(String sdcd);
+
 	
 }

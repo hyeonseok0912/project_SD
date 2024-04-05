@@ -41,4 +41,15 @@
    <delete id="clearData">
    		DELETE FROM hyeon;
    </delete>
+   
+	<select id="usagelist" resultType="Map">
+		SELECT sd_nm, sd_cd, totalusage 
+		FROM hyeonsdview;
+	</select>
+	
+	<select id="usagelistsgg" resultType="Map" parameterType="String">
+		SELECT sgg_nm, sd_cd, usage 
+		FROM hyeonview3view 
+		WHERE sd_cd = #{sdcd};
+	</select>
 </mapper>
