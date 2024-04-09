@@ -19,7 +19,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- google charts -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <!-- Bootstrap JS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.6.0/font/bootstrap-icons.css" />
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -77,7 +78,7 @@
 
                 var sidoCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
                 map.getView().setCenter(sidoCenter); // 중심좌표 기준으로 보기
-                map.getView().setZoom(8); // 중심좌표 기준으로 줌 설정
+                map.getView().setZoom(10); // 중심좌표 기준으로 줌 설정
 
                 $.ajax({
                     type: "POST", // 또는 "GET", 요청 방식 선택
@@ -136,7 +137,7 @@
 
                 var sggCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
                 map.getView().setCenter(sggCenter); // 중심좌표 기준으로 보기
-                map.getView().setZoom(10); // 중심좌표 기준으로 줌 설정
+                map.getView().setZoom(12); // 중심좌표 기준으로 줌 설정
 
                 cqlFilterSGG = "sgg_cd='" + sggSelectedValue + "'";
                 cqlFilterSGGBL = "sgg_cd='" + sggSelectedValue + "'";
@@ -199,7 +200,7 @@
 
                 var bjdCenter = ol.proj.fromLonLat([xCoordinate, yCoordinate]);
                 map.getView().setCenter(bjdCenter); // 중심좌표 기준으로 보기
-                map.getView().setZoom(13); // 중심좌표 기준으로 줌 설정
+                map.getView().setZoom(14); // 중심좌표 기준으로 줌 설정
 
                 cqlFilterBJD = "bjd_cd='" + bjdSelectedValue + "'";
 
@@ -267,10 +268,12 @@
                     map.removeLayer(sdblLayer);
                     map.removeLayer(sggblLayer);
 
-
                     //시도 레이어 추가
                     addSidoLayer();
-                    sggMapClick();
+                    
+                    if(!sggcd){
+	                    sggMapClick();
+                    }
 
                     if (sggcd) {
                         // 시군구 레이어 추가
@@ -770,8 +773,8 @@
 
         /* 커스텀 헤더 스타일 */
         .custom-header {
-            background-color: aqua;
-            color: black;
+            background-color: #03C75A;
+            color: white;
             text-align: center;
             font-size: 36px;
             font-weight: bold;
@@ -788,22 +791,21 @@
         /* 맵 스타일 */
         #map {
             width: 100%;
-            height: 600px;
+            height: 604px;
         }
 
         /* 푸터 스타일 */
         .footer {
             height: 50px;
-            background-color: aqua;
-            color: black;
+            background-color: #03C75A;
             text-align: center;
             line-height: 50px;
+            font-weight: bolder;
         }
 
         /* 그리드 컬럼 및 메뉴, 셀렉트바 스타일 */
         .col-3,
-        .col-9,
-        .upMenu {
+        .col-9 {
             border: 2px solid gray;
         }
 
@@ -812,15 +814,15 @@
             padding: 0 !important;
         }
 
-        /* 탄소공간지도 시스템 스타일 */
+        /* 전력공간지도 시스템 스타일 */
         .TS {
             border-right: 2px solid gray;
-            height: 40px;
+            height : 40px;
             font-size: 20px;
             font-weight: bold;
             text-align: center;
             border-bottom: 2px solid gray;
-            background-color: aqua;
+            background-color: #03C75A;
         }
 
         /* 메뉴 스타일 */
@@ -858,9 +860,9 @@
 
         .legend-container {
             position: absolute;
-            bottom: 25px;
+            bottom: 20px;
             /* 맵 상단으로부터의 거리를 조절합니다. */
-            left: 665px;
+            left: 1198px;
             /* 맵 왼쪽으로부터의 거리를 조절합니다. */
             z-index: 1000;
             /* 다른 요소 위에 표시되도록 z-index 설정합니다. */
@@ -899,6 +901,13 @@
             font-size: 16px;
             line-height: 1.5;
         }
+        .fileUpload{
+			width: 
+        }
+        .container {
+		    width: 100%;
+		    min-width: 1850px;
+		}
     </style>
 </head>
 
@@ -909,14 +918,23 @@
         <div class="row">
             <div class="col-3">
                 <div class="toolBar">
-                    <div class="TS">탄소공간지도 시스템</div>
-                    <div class="upMenu" style="display: flex; justify-content: space-between;">
-                        <div class="menu">
-                            <button id="carbonMapBtn">탄소지도</button>
-                            <button id="dataInsertBtn"> 데이터삽입 </button>
-                            <button id="statisticsBtn">통계</button>
+                    <div class="TS">전력공간지도 시스템</div>
+                    <div class="upMenu row" style="display: flex;">
+                        <div class="menu col-6">
+                            <button id="carbonMapBtn" style = "width : 100%;">
+							    <i class="bi bi-geo-alt-fill"></i>
+							    전기지도
+							</button>
+                            <button id="dataInsertBtn" style = "width : 100%;">
+                            	<i class="bi bi-cloud-arrow-up-fill"></i>
+                            	데이터삽입
+                            </button>
+                            <button id="statisticsBtn" style = "width : 100%;">
+                            	<i class="bi bi-bar-chart-steps"></i>
+                            	통계
+                            </button>
                         </div>
-                        <div>
+                        <div class="col-6">
                             <div class="startMenu">
                                 메뉴를 선택해주세요
                             </div>
@@ -939,7 +957,14 @@
                                 </select>
                             </div>
                             <div class="selectBar">
-                                <button type="button" id="searchBtn" class="btn btn-info">검색</button>
+                                <button type="button" id="searchBtn" class="btn btn-success">
+	                                <i class="bi bi-search"></i>
+	                                검색
+                                </button>
+                                <button id="resetBtn" type="button" class="btn btn-secondary">
+	                                <i class="bi bi-eraser-fill"></i>
+	                                초기화
+                                </button>
                             </div>
                             <div class="fileUpload">
                                 <form id="form" enctype="multipart/form-data">
@@ -999,7 +1024,7 @@
     </div>
 
     <div class="footer">
-        <h3>탄소배출량 표기 시스템</h3>
+        <h3>전력사용량 표기 시스템</h3>
     </div>
 
 
@@ -1015,7 +1040,7 @@
             $('#carbonMapBtn').click(function() {
                 $('.fileUpload').hide(); // 파일 업로드 숨기기
                 $('.staticSelectBar').hide(); // 통계 검색 숨기기
-                $('.selectBar').toggle(); // 셀렉트바 보이기/숨기기
+                $('.selectBar').show(); // 셀렉트바 보이기/숨기기
                 $('.startMenu').hide();
             });
 
@@ -1023,13 +1048,13 @@
             $('#dataInsertBtn').click(function() {
                 $('.selectBar').hide(); // 셀렉트바 숨기기
                 $('.staticSelectBar').hide(); // 통계 검색 숨기기
-                $('.fileUpload').toggle(); // 파일 업로드 보이기/숨기기
+                $('.fileUpload').show(); // 파일 업로드 보이기/숨기기
                 $('.startMenu').hide();
             });
 
             // 통계 클릭 시 통계 검색 버튼 보이기
             $('#statisticsBtn').click(function() {
-                $('.staticSelectBar').toggle(); // 통계 검색 보이기
+                $('.staticSelectBar').show(); // 통계 검색 보이기
                 $('.selectBar').hide(); // 셀렉트바 숨기기
                 $('.fileUpload').hide(); // 파일 업로드 보이기/숨기기
                 $('.startMenu').hide();
@@ -1038,6 +1063,16 @@
             $(".close").click(function() {
                 // 모달을 숨깁니다.
                 $("#myModal").modal("hide");
+            });
+            // 리셋 클릭 시 창 초기화
+            $(document).ready(function() {
+                $("#resetBtn").click(function() {
+                    // 페이지를 초기화합니다
+                    location.reload();
+                });
+
+                // 페이지가 로드될 때 전기지도 버튼을 클릭합니다
+                $("#carbonMapBtn").click();
             });
         });
     </script>
